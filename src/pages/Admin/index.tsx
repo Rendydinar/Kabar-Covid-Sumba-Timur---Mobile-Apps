@@ -1,21 +1,20 @@
-import Gap from 'components/atoms/Gap';
-import UbahDataCovid from 'components/organims/UbahDataCovid';
-import UbahDataCovidPerkecamatan from 'components/organims/UbahDataCovidPerkecamatan';
-import UbahDataIsolasi from 'components/organims/UbahDataIsolasi';
-import UbahDataVaksin from 'components/organims/UbahDataVaksin';
-import React, {useEffect} from 'react';
+import {ICDatabase} from 'assets';
+import CardItemPage from 'components/molecus/CardItemPage';
+import React from 'react';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {ILHospitalBG} from '../../assets/illustration';
-import {colors} from '../../utils/colors';
-import {fonts} from '../../utils/fonts';
+import {ILHospitalBG} from 'assets/illustration';
+import {colors} from 'utils/colors';
+import {fonts} from 'utils/fonts';
 
-interface IProps {}
+interface IProps {
+  navigation: any;
+}
 
-const Admin: React.FC<IProps> = () => {
-  useEffect(() => {
-    // run firebase in here
-  }, []);
+const Admin: React.FC<IProps> = props => {
+  const gotoPage = (pageName: string) => {
+    props.navigation.navigate(pageName);
+  };
 
   return (
     <View style={styles.root}>
@@ -27,13 +26,26 @@ const Admin: React.FC<IProps> = () => {
           </Text>
         </ImageBackground>
         <View style={styles.content}>
-          <UbahDataCovid />
-          <Gap height={10} />
-          <UbahDataCovidPerkecamatan />
-          <Gap height={10} />
-          <UbahDataIsolasi />
-          <Gap height={10} />
-          <UbahDataVaksin />
+          <CardItemPage
+            icon={<ICDatabase />}
+            title="Manajemen Data Covid"
+            onPress={() => gotoPage('ManajemenDataCovid')}
+          />
+          <CardItemPage
+            icon={<ICDatabase />}
+            title="Manajemen Data Covid Perkecamatan"
+            onPress={() => gotoPage('ManajemenDataCovidPerkecamatan')}
+          />
+          <CardItemPage
+            icon={<ICDatabase />}
+            title="Manajemen Data Isolasi"
+            onPress={() => gotoPage('ManajemenDataIsolasi')}
+          />
+          <CardItemPage
+            icon={<ICDatabase />}
+            title="Manajemen Data Vaksin"
+            onPress={() => gotoPage('ManajemenDataVaksin')}
+          />
         </View>
       </ScrollView>
     </View>
@@ -66,9 +78,14 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingTop: 14,
+    paddingHorizontal: 30,
     backgroundColor: colors.white,
     borderRadius: 20,
     flex: 1,
     marginTop: -30,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
 });

@@ -1,5 +1,4 @@
 import {Picker} from '@react-native-picker/picker';
-import {ICCircleDown, ICCircleUp} from 'assets';
 import {ICAddPhoto, ICRemovePhoto} from 'assets/icon';
 import {ILVaksinNull} from 'assets/illustration';
 import Button from 'components/atoms/Button';
@@ -11,8 +10,14 @@ import {DAFTAR_VAKSIN_COVID} from 'contants';
 import {IFormTambahDataVaksin, IVaksin} from 'interfaces';
 import sortBy from 'lodash/sortBy';
 import React, {useEffect, useRef, useState} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import Collapsible from 'react-native-collapsible';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import {showMessage} from 'react-native-flash-message';
 import {
@@ -23,15 +28,19 @@ import {useDispatch} from 'react-redux';
 import {fonts, formatDate} from 'utils';
 import {colors} from 'utils/colors';
 import {showError, showSuccess} from 'utils/showMessage';
+import {useNavigation} from '@react-navigation/native';
+import LoadingIndicator from 'components/atoms/LoadingIndicator';
+
 interface IProps {}
 const UbahDataVaksin: React.FC<IProps> = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const pickerJenisVaksinRef: any = useRef();
   const [hasPhoto, setHasPhoto] = useState(false);
   const [photo, setPhoto] = useState(ILVaksinNull);
-  const [dateVaksin, setDateVaksin] = useState(new Date());
+  const [dateMulaiVaksin, setDateMulaiVaksin] = useState(new Date());
+  const [dateBerakhirVaksin, setDateBerakhirVaksin] = useState(new Date());
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(true);
   const [data, setData] = useState<IVaksin[]>([]);
   const [form, setForm] = useState<IFormTambahDataVaksin>({
     keterangan: '',
@@ -40,6 +49,10 @@ const UbahDataVaksin: React.FC<IProps> = () => {
     jenis_vaksin: '',
     date: '',
     image_name: '',
+    place_map: '',
+    kewajiban: [],
+    kouta: 0,
+    waktu_berakhir_timestamp: 0,
   });
 
   const getImageFromGallery = () => {
@@ -75,11 +88,6 @@ const UbahDataVaksin: React.FC<IProps> = () => {
       }
     });
   };
-  const handleToogle = () => {
-    if (open && data) {
-    }
-    setOpen(!open);
-  };
 
   const handleSubmit = async () => {
     dispatch({
@@ -90,8 +98,9 @@ const UbahDataVaksin: React.FC<IProps> = () => {
       // update data here
       await addDataVaksin({
         ...form,
-        timestamp: dateVaksin.getTime(),
-        date: formatDate(dateVaksin),
+        timestamp: dateMulaiVaksin.getTime(),
+        date: formatDate(dateMulaiVaksin),
+        waktu_berakhir_timestamp: new Date(dateBerakhirVaksin).getTime(),
       });
       dispatch({
         type: 'SET_LOADING',
@@ -140,8 +149,12 @@ const UbahDataVaksin: React.FC<IProps> = () => {
     });
   };
 
-  const handleChangeDateVaksin = (date: Date) => {
-    setDateVaksin(date);
+  const handleChangeDateMulaiVaksin = (date: Date) => {
+    setDateMulaiVaksin(date);
+  };
+
+  const handleChangeDateBerakhirVaksin = (date: Date) => {
+    setDateBerakhirVaksin(date);
   };
 
   useEffect(() => {
@@ -149,7 +162,30 @@ const UbahDataVaksin: React.FC<IProps> = () => {
       await handleGetDataVaksin();
     }
     funcAsynDefault();
-  }, []);
+    // Preventing going back see more: https://reactnavigation.org/docs/preventing-going-back
+    navigation.addListener('beforeRemove', e => {
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      // Prompt the user before leaving the screen
+      Alert.alert(
+        'Peringatan',
+        'Apakah kamu yakin meninggalkan halaman ini ?',
+        [
+          {text: 'Tidak', style: 'cancel', onPress: () => {}},
+          {
+            text: 'Iya',
+            style: 'destructive',
+            // If the user confirmed, then we dispatch the action we blocked earlier
+            // This will continue the action that had triggered the removal of the screen
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return () => setLoadingFetch(false);
+  }, [navigation]);
 
   const handleRemovePhotoVaksin = (): void => {
     setForm({
@@ -162,93 +198,133 @@ const UbahDataVaksin: React.FC<IProps> = () => {
   };
 
   return loadingFetch ? (
-    <View></View>
+    <View>
+      <LoadingIndicator size="large" color="primary" />
+    </View>
   ) : (
     <View style={styles.root}>
-      <TouchableOpacity
-        onPress={handleToogle}
-        style={styles.btnToogle}
-        activeOpacity={1}>
-        <Text style={styles.titleBtnToogle}>Ubah Data Vaksin</Text>
-        {open ? <ICCircleDown /> : <ICCircleUp />}
-      </TouchableOpacity>
-      <Collapsible collapsed={open} style={styles.collapseWrapper}>
-        {data.map((vaksin: IVaksin, index: number) => (
-          <View style={styles.containerCardVaksin}>
-            <Text style={styles.indexVaksinCard}>{index + 1}</Text>
-            {vaksin.img_url ? (
-              <Image source={{uri: vaksin.img_url}} style={styles.imgVaksin} />
-            ) : (
-              <Text style={styles.waktuVaksin}>Gambar: Tidak ada gambar</Text>
-            )}
+      {data.map((vaksin: IVaksin, index: number) => (
+        <View style={styles.containerCardVaksin} key={index}>
+          <Text style={styles.indexVaksinCard}>{index + 1}</Text>
+          {vaksin.img_url ? (
+            <Image source={{uri: vaksin.img_url}} style={styles.imgVaksin} />
+          ) : (
+            <Text style={styles.waktuVaksin}>Gambar: Tidak ada gambar</Text>
+          )}
+          <Text style={styles.waktuVaksin}>
+            Jenis vaksin: {vaksin.jenis_vaksin}
+          </Text>
+          <Text style={styles.waktuVaksin}>Waktu Mulai: {vaksin.date}</Text>
+          {vaksin.waktu_berakhir_timestamp ? (
             <Text style={styles.waktuVaksin}>
-              Jenis vaksin: {vaksin.jenis_vaksin}
+              Waktu berakhir: {vaksin.waktu_berakhir_timestamp}
             </Text>
-            <Text style={styles.waktuVaksin}>Waktu: {vaksin.date}</Text>
+          ) : (
+            <></>
+          )}
+          <Text style={styles.waktuVaksin}>
+            Keterangan: {vaksin.keterangan}
+          </Text>
+          <Text style={styles.waktuVaksin}>Sumber: {vaksin.sumber}</Text>
+          {vaksin.kewajiban ? (
+            <>
+              <Text style={styles.waktuVaksin}>Kewajiban: </Text>
+              {vaksin.kewajiban.map((kewajibanItem: string, index: number) => (
+                <Text style={styles.kewajibanVaksin} key={index}>
+                  {' - '} {kewajibanItem}
+                </Text>
+              ))}
+            </>
+          ) : (
+            <></>
+          )}
+          {vaksin.place_map ? (
             <Text style={styles.waktuVaksin}>
-              Keterangan: {vaksin.keterangan}
+              Place map: {vaksin.place_map}
             </Text>
-            <Text style={styles.waktuVaksin}>Sumber: {vaksin.sumber}</Text>
-          </View>
-        ))}
-        <View style={styles.containerItemForm}>
-          <View>
-            <View style={styles.avatarWrapper}>
-              <Image source={photo} style={styles.avatar} />
-            </View>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-              {hasPhoto ? (
-                <TouchableOpacity onPress={handleRemovePhotoVaksin}>
-                  <ICRemovePhoto style={styles.iconAddPhoto} />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={getImageFromGallery}>
-                  <ICAddPhoto style={styles.iconAddPhoto} />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={styles.waktuVaksin}>Jenis vaksin</Text>
-            <View style={styles.containerPickerJenisVaksin}>
-              <Picker
-                style={styles.pickerJenisVaksin}
-                ref={pickerJenisVaksinRef}
-                selectedValue={form.jenis_vaksin}
-                onValueChange={(itemValue, itemIndex) =>
-                  handleOnChangeJenisVaksin(itemValue)
-                }>
-                {DAFTAR_VAKSIN_COVID.map((vaksin: string, index: number) => (
-                  <Picker.Item label={vaksin} value={vaksin} />
-                ))}
-              </Picker>
-            </View>
-            <Input
-              label="Keterangan"
-              value={String(form.keterangan)}
-              onChangeText={value => handleOnChange('keterangan', value)}
-            />
-            <Input
-              label="Sumber"
-              value={String(form.sumber)}
-              onChangeText={value => handleOnChange('sumber', value)}
-            />
-            <Text style={styles.waktuVaksin}>Waktu vaksin</Text>
-            <DatePicker
-              date={dateVaksin}
-              onDateChange={date => handleChangeDateVaksin(date)}
-              mode="datetime"
-            />
-          </View>
-          <Gap height={10} />
+          ) : (
+            <></>
+          )}
+          {vaksin.kouta ? (
+            <Text style={styles.waktuVaksin}>Kouta vaksin: {vaksin.kouta}</Text>
+          ) : (
+            <></>
+          )}
         </View>
-        <Gap height={40} />
-        <Button title="Kirim" onPress={handleSubmit} />
-        <Gap height={20} />
-      </Collapsible>
+      ))}
+      <View style={styles.containerItemForm}>
+        <View>
+          <View style={styles.avatarWrapper}>
+            <Image source={photo} style={styles.avatar} />
+          </View>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            {hasPhoto ? (
+              <TouchableOpacity onPress={handleRemovePhotoVaksin}>
+                <ICRemovePhoto style={styles.iconAddPhoto} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={getImageFromGallery}>
+                <ICAddPhoto style={styles.iconAddPhoto} />
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={styles.waktuVaksin}>Jenis vaksin</Text>
+          <View style={styles.containerPickerJenisVaksin}>
+            <Picker
+              style={styles.pickerJenisVaksin}
+              ref={pickerJenisVaksinRef}
+              selectedValue={form.jenis_vaksin}
+              onValueChange={(itemValue, itemIndex) =>
+                handleOnChangeJenisVaksin(itemValue)
+              }>
+              {DAFTAR_VAKSIN_COVID.map((vaksin: string, index: number) => (
+                <Picker.Item label={vaksin} value={vaksin} key={index} />
+              ))}
+            </Picker>
+          </View>
+          <Input
+            label="Kouta"
+            value={String(form.kouta)}
+            onChangeText={value => handleOnChange('kouta', value)}
+          />
+          <Input
+            label="Sumber"
+            value={String(form.sumber)}
+            onChangeText={value => handleOnChange('sumber', value)}
+          />
+          <Input
+            label="Keterangan"
+            value={String(form.keterangan)}
+            onChangeText={value => handleOnChange('keterangan', value)}
+          />
+          <Input
+            multiline
+            label="Lokasi vaksin"
+            value={String(form.place_map)}
+            onChangeText={value => handleOnChange('place_map', value)}
+          />
+          <Text style={styles.waktuVaksin}>Waktu mulai vaksin</Text>
+          <DatePicker
+            date={dateMulaiVaksin}
+            onDateChange={date => handleChangeDateMulaiVaksin(date)}
+            mode="datetime"
+          />
+          <Text style={styles.waktuVaksin}>Waktu berakhir vaksin</Text>
+          <DatePicker
+            date={dateBerakhirVaksin}
+            onDateChange={date => handleChangeDateBerakhirVaksin(date)}
+            mode="datetime"
+          />
+        </View>
+        <Gap height={10} />
+      </View>
+      <Gap height={40} />
+      <Button title="Kirim" isShowPrompt={true} onPress={handleSubmit} />
+      <Gap height={20} />
     </View>
   );
 };
@@ -259,32 +335,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.white,
-    paddingHorizontal: 10,
-  },
-  btnToogle: {
-    height: 40,
-    width: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  titleBtnToogle: {
-    color: colors.white,
-    fontFamily: fonts.primary[700],
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  collapseWrapper: {
-    borderColor: colors.primary,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    paddingHorizontal: 10,
-    paddingTop: 20,
   },
   containerItemForm: {
     borderColor: colors.secondary,
@@ -312,7 +362,6 @@ const styles = StyleSheet.create({
   avatar: {
     width: '100%',
     height: 350,
-    // borderRadius: 110 / 2,
   },
   imgVaksin: {
     width: '100%',
@@ -324,12 +373,10 @@ const styles = StyleSheet.create({
     height: 350,
     borderWidth: 1,
     borderColor: colors.border,
-    // borderRadius: 130 / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconAddPhoto: {
-    // position: 'absolute',
     bottom: 8,
     right: 6,
   },
@@ -343,20 +390,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   containerPickerJenisVaksin: {
-    // height: 45,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 10,
-    // padding: 12,
   },
-  // itemJenisVaksin: {
-  //   fontSize: 16,
-  // },
   containerCardVaksin: {
     marginVertical: 10,
     borderColor: colors.primary,
     borderWidth: 1,
     borderRadius: 8,
+    padding: 5,
   },
   indexVaksinCard: {
     width: 40,
@@ -366,5 +409,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: fonts.primary[800],
     fontSize: 20,
+  },
+  kewajibanVaksin: {
+    fontSize: 16,
+    fontFamily: fonts.primary[600],
+    color: colors.text.secondary,
+    marginBottom: 6,
+    marginLeft: 5,
   },
 });

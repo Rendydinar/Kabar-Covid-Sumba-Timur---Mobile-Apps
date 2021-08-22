@@ -1,34 +1,26 @@
-import {ICCircleDown, ICCircleUp} from 'assets';
 import Button from 'components/atoms/Button';
 import Gap from 'components/atoms/Gap';
 import Input from 'components/atoms/Input';
 import {getIsolasiData} from 'config/firebase/fetchData/getIsolasiData';
 import {updateIsolasiData} from 'config/firebase/fetchData/updateIsolasiData';
-import {IIsolasi, IUbahDataIsolasi} from 'interfaces';
+import {IIsolasi} from 'interfaces';
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import Collapsible from 'react-native-collapsible';
+import {Alert, StyleSheet, Text, View} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import {useDispatch} from 'react-redux';
-import {fonts, formatDate} from 'utils';
+import {colors, fonts, formatDate} from 'utils';
 import {showError, showSuccess} from 'utils/showMessage';
-import {colors} from '../../../utils/colors';
+import {useNavigation} from '@react-navigation/native';
+import LoadingIndicator from 'components/atoms/LoadingIndicator';
+
 interface IProps {}
 
 const UbahDataIsolasi: React.FC<IProps> = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [date, setDate] = useState(new Date());
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(true);
   const [data, setData] = useState<any>();
-  const [staticData, setStaticData] = useState<IUbahDataIsolasi>();
-
-  const handleToogle = () => {
-    if (open && staticData) {
-      setData(staticData);
-    }
-    setOpen(!open);
-  };
 
   const handleSubmit = async () => {
     dispatch({
@@ -106,7 +98,6 @@ const UbahDataIsolasi: React.FC<IProps> = () => {
     try {
       const responseGetDataIsolasi: any = await getIsolasiData();
       setData(responseGetDataIsolasi);
-      setStaticData(responseGetDataIsolasi);
     } catch (err) {
       showError(err.message);
     }
@@ -118,130 +109,142 @@ const UbahDataIsolasi: React.FC<IProps> = () => {
       await getDataIsolasi();
     }
     funcAsynDefault();
-  }, []);
+
+    // Preventing going back see more: https://reactnavigation.org/docs/preventing-going-back
+    navigation.addListener('beforeRemove', e => {
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      // Prompt the user before leaving the screen
+      Alert.alert(
+        'Peringatan',
+        'Apakah kamu yakin meninggalkan halaman ini ?',
+        [
+          {text: 'Tidak', style: 'cancel', onPress: () => {}},
+          {
+            text: 'Iya',
+            style: 'destructive',
+            // If the user confirmed, then we dispatch the action we blocked earlier
+            // This will continue the action that had triggered the removal of the screen
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return () => setLoadingFetch(false);
+  }, [navigation]);
 
   return loadingFetch ? (
-    <View></View>
+    <View>
+      <LoadingIndicator size="large" color="primary" />
+    </View>
   ) : (
     <View style={styles.root}>
-      <TouchableOpacity
-        onPress={handleToogle}
-        style={styles.btnToogle}
-        activeOpacity={1}>
-        <Text style={styles.titleBtnToogle}>Ubah Data Isolasi</Text>
-        {open ? <ICCircleDown /> : <ICCircleUp />}
-      </TouchableOpacity>
-      <Collapsible collapsed={open} style={styles.collapseWrapper}>
-        {data && (
-          <>
-            <Text style={styles.terkahirUpdate}>
-              Terakhir Update: {data?.date}
-            </Text>
-            <Text style={styles.waktuUpdate}>Waktu Update:</Text>
-            <DatePicker date={date} onDateChange={setDate} mode="date" />
-            <View style={styles.containerItemForm}>
-              <Text style={styles.titleContainerItemForm}>Isolasi Mandiri</Text>
-              <View>
-                <Input
-                  label="Kasus terkonfirmasi"
-                  value={String(data.data.isolasi_mandiri.kasus_terkonfirmasi)}
-                  onChangeText={value =>
-                    handleOnChange(
-                      'isolasi_mandiri',
-                      'kasus_terkonfirmasi',
-                      value
-                    )
-                  }
-                  type="numeric"
-                />
-                <Input
-                  label="Place Map"
-                  value={String(data.data.isolasi_mandiri.place_map)}
-                  onChangeText={value =>
-                    handleOnChange('isolasi_mandiri', 'place_map', value)
-                  }
-                  disable
-                />
-              </View>
-              <Gap height={10} />
-            </View>
-
-            <View style={styles.containerItemForm}>
-              <Text style={styles.titleContainerItemForm}>
-                Isolasi Terpusat
-              </Text>
-              <View>
-                {data.data.isolasi_terpusat.data.map(
-                  (isolasiTerpusat: IIsolasi, index: number) => (
-                    <View key={index}>
-                      <Text style={styles.namaTempatIsolasi}>
-                        {isolasiTerpusat.nama_tempat}
-                      </Text>
-                      <Input
-                        label="Kasus terkonfirmasi"
-                        value={String(isolasiTerpusat.kasus_terkonfirmasi)}
-                        onChangeText={value =>
-                          handleOnChange(
-                            'isolasi_terpusat',
-                            'kasus_terkonfirmasi',
-                            value,
-                            index
-                          )
-                        }
-                        type="numeric"
-                      />
-                      <Input
-                        label="Place Map"
-                        value={isolasiTerpusat.place_map}
-                        onChangeText={value =>
-                          handleOnChange('isolasi_mandiri', 'place_map', value)
-                        }
-                        disable
-                      />
-                    </View>
+      {data && (
+        <>
+          <Text style={styles.terkahirUpdate}>
+            Terakhir Update: {data?.date}
+          </Text>
+          <Text style={styles.waktuUpdate}>Waktu Update:</Text>
+          <DatePicker date={date} onDateChange={setDate} mode="date" />
+          <View style={styles.containerItemForm}>
+            <Text style={styles.titleContainerItemForm}>Isolasi Mandiri</Text>
+            <View>
+              <Input
+                label="Kasus terkonfirmasi"
+                value={String(data.data.isolasi_mandiri.kasus_terkonfirmasi)}
+                onChangeText={value =>
+                  handleOnChange(
+                    'isolasi_mandiri',
+                    'kasus_terkonfirmasi',
+                    value
                   )
-                )}
-              </View>
-              <Gap height={10} />
+                }
+                type="numeric"
+              />
+              <Input
+                label="Place Map"
+                value={String(data.data.isolasi_mandiri.place_map)}
+                onChangeText={value =>
+                  handleOnChange('isolasi_mandiri', 'place_map', value)
+                }
+                disable
+              />
             </View>
-
-            <View style={styles.containerItemForm}>
-              <Text style={styles.titleContainerItemForm}>Rawat RSUD</Text>
-              <View>
-                <Input
-                  label="Terkonfirmasi"
-                  value={String(data.data.rawat_rsud.terkonfirmasi)}
-                  onChangeText={value =>
-                    handleOnChange('rawat_rsud', 'terkonfirmasi', value)
-                  }
-                  type="numeric"
-                />
-                <Input
-                  label="Menunggu hasil PCR"
-                  value={String(data.data.rawat_rsud.menunggu_hasil_pcr)}
-                  onChangeText={value =>
-                    handleOnChange('rawat_rsud', 'menunggu_hasil_pcr', value)
-                  }
-                  type="numeric"
-                />
-
-                <Input
-                  label="Place Map"
-                  value={String(data.data.rawat_rsud.place_map)}
-                  onChangeText={value =>
-                    handleOnChange('rawat_rsud', 'place_map', value)
-                  }
-                  disable
-                />
-              </View>
-              <Gap height={10} />
+            <Gap height={10} />
+          </View>
+          <View style={styles.containerItemForm}>
+            <Text style={styles.titleContainerItemForm}>Isolasi Terpusat</Text>
+            <View>
+              {data.data.isolasi_terpusat.data.map(
+                (isolasiTerpusat: IIsolasi, index: number) => (
+                  <View key={index}>
+                    <Text style={styles.namaTempatIsolasi}>
+                      {isolasiTerpusat.nama_tempat}
+                    </Text>
+                    <Input
+                      label="Kasus terkonfirmasi"
+                      value={String(isolasiTerpusat.kasus_terkonfirmasi)}
+                      onChangeText={value =>
+                        handleOnChange(
+                          'isolasi_terpusat',
+                          'kasus_terkonfirmasi',
+                          value,
+                          index
+                        )
+                      }
+                      type="numeric"
+                    />
+                    <Input
+                      label="Place Map"
+                      value={isolasiTerpusat.place_map}
+                      onChangeText={value =>
+                        handleOnChange('isolasi_mandiri', 'place_map', value)
+                      }
+                      disable
+                    />
+                  </View>
+                )
+              )}
             </View>
-            <Gap height={40} />
-            <Button title="Kirim" onPress={handleSubmit} />
-            <Gap height={20} />
-          </>
-        )}
-      </Collapsible>
+            <Gap height={10} />
+          </View>
+          <View style={styles.containerItemForm}>
+            <Text style={styles.titleContainerItemForm}>Rawat RSUD</Text>
+            <View>
+              <Input
+                label="Terkonfirmasi"
+                value={String(data.data.rawat_rsud.terkonfirmasi)}
+                onChangeText={value =>
+                  handleOnChange('rawat_rsud', 'terkonfirmasi', value)
+                }
+                type="numeric"
+              />
+              <Input
+                label="Menunggu hasil PCR"
+                value={String(data.data.rawat_rsud.menunggu_hasil_pcr)}
+                onChangeText={value =>
+                  handleOnChange('rawat_rsud', 'menunggu_hasil_pcr', value)
+                }
+                type="numeric"
+              />
+              <Input
+                label="Place Map"
+                value={String(data.data.rawat_rsud.place_map)}
+                onChangeText={value =>
+                  handleOnChange('rawat_rsud', 'place_map', value)
+                }
+                disable
+              />
+            </View>
+            <Gap height={10} />
+          </View>
+          <Gap height={40} />
+          <Button title="Kirim" isShowPrompt={true} onPress={handleSubmit} />
+          <Gap height={20} />
+        </>
+      )}
     </View>
   );
 };
@@ -252,32 +255,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.white,
-    paddingHorizontal: 10,
-  },
-  btnToogle: {
-    height: 40,
-    width: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  titleBtnToogle: {
-    color: colors.white,
-    fontFamily: fonts.primary[700],
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  collapseWrapper: {
-    borderColor: colors.primary,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    paddingHorizontal: 10,
-    paddingTop: 20,
   },
   containerItemForm: {
     borderColor: colors.secondary,

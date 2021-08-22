@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {Alert, Text, TouchableOpacity, View} from 'react-native';
 import BtnIconSend from './BtnIconSend';
 import IconOnly from './IconOnly';
 import styles from './styles';
@@ -10,13 +10,38 @@ interface IProps {
   disable?: boolean;
   icon?: string;
   onPress?: () => void;
+  isShowPrompt?: boolean;
 }
 const Button: React.FC<IProps> = props => {
+  const handleOnPressButton = (): void => {
+    if (props.onPress && props.isShowPrompt) {
+      // Prompt the user before execute onPress button
+      Alert.alert(
+        'Peringatan',
+        'Apakah kamu akan melakukan melanjutkan perubahan ?',
+        [
+          {text: 'Tidak', style: 'cancel', onPress: () => {}},
+          {
+            text: 'Iya',
+            style: 'destructive',
+            // If the user confirmed, then we dispatch the action we blocked earlier
+            // This will continue the action that had triggered the removal of the screen
+            onPress: props.onPress,
+          },
+        ]
+      );
+    } else {
+      if (props.onPress) {
+        props?.onPress();
+      }
+    }
+  };
+
   if (props.type === 'btn-icon-send') {
     return <BtnIconSend disable={props.disable} onPress={props.onPress} />;
   }
   if (props.type === 'icon-only' && props.icon) {
-    return <IconOnly icon={props.icon} onPress={props.onPress} />;
+    return <IconOnly icon={props.icon} onPress={handleOnPressButton} />;
   }
 
   if (props.disable) {
@@ -30,7 +55,7 @@ const Button: React.FC<IProps> = props => {
   return (
     <TouchableOpacity
       style={styles(props.type).rootButton}
-      onPress={props.onPress}>
+      onPress={handleOnPressButton}>
       <Text style={styles(props.type).labelButton}>{props.title}</Text>
     </TouchableOpacity>
   );

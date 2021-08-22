@@ -21,14 +21,16 @@ export default CardItemPage;
 
 const styles = StyleSheet.create({
   root: {
-    width: 100,
+    width: 115,
     alignItems: 'center',
     justifyContent: 'center',
     shadowOpacity: 10,
     borderColor: colors.primary,
     borderRadius: 10,
-    height: 80,
+    height: 115,
     backgroundColor: colors.green4,
+    padding: 10,
+    margin: 10,
   },
   title: {
     fontSize: 14,
@@ -37,19 +39,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-{
-  /* <View
-          style={{
-            width: 100,
-            alignItems: 'center',
-            justifyContent: 'center',
-            shadowOpacity: 10,
-            borderColor: colors.primary,
-            borderRadius: 10,
-            height: 80,
-            backgroundColor: colors.green4,
-          }}>
-          <ICDatabase />
-          <Text style={styles.title}>Ubah Data</Text>
-        </View> */
-}

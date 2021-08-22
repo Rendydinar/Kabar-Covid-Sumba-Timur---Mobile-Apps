@@ -1,6 +1,11 @@
 import React from 'react';
 import {TouchableOpacity} from 'react-native';
-import {ICBackDark, ICBackLight} from 'assets/icon';
+import {
+  ICBackDark,
+  ICBackLight,
+  ICUnVisibleEyes,
+  ICVisibleEyes,
+} from 'assets/icon';
 
 interface IProps {
   icon: string;
@@ -13,6 +18,10 @@ const IconOnly: React.FC<IProps> = props => {
       return <ICBackDark />;
     } else if (props.icon === 'back-light') {
       return <ICBackLight />;
+    } else if (props.icon === 'visible-eyes') {
+      return <ICVisibleEyes />;
+    } else if (props.icon === 'unvisible-eyes') {
+      return <ICUnVisibleEyes />;
     } else {
       return <ICBackDark />;
     }

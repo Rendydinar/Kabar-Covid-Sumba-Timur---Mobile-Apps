@@ -21,6 +21,9 @@ import ICSendDark from './ic-send-dark.svg';
 import ICDatabase from './ic-park-database-forbid.svg';
 import ICCircleDown from './circle_down.svg';
 import ICCircleUp from './circle_up.svg';
+import ICAddLarge from './ic-add-large.svg';
+import ICVisibleEyes from './ic-visible-eyes.svg';
+import ICUnVisibleEyes from './ic-unvisible-eyes.svg';
 
 export {
   ICLogo,
@@ -46,4 +49,7 @@ export {
   ICDatabase,
   ICCircleDown,
   ICCircleUp,
+  ICAddLarge,
+  ICVisibleEyes,
+  ICUnVisibleEyes,
 };

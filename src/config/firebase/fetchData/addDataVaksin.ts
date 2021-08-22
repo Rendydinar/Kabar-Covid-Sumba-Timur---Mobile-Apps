@@ -17,6 +17,10 @@ export const addDataVaksin =  (data: IFormTambahDataVaksin) => new Promise(async
       jenis_vaksin: data.jenis_vaksin,
       date: data.date,
       timestamp: data.timestamp,
+      place_map: data.place_map,
+      kewajiban: data.kewajiban,
+      kouta: data.kouta,
+      waktu_berakhir_timestamp: data.waktu_berakhir_timestamp,
     })
     resolve({
       success: true,

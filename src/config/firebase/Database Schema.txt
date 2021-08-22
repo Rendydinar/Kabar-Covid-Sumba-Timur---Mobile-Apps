@@ -1,69 +1,68 @@
-- chatting
-    -chatID --> (uid1_uid2)
-        - allChat
-            - dateChat --> (2020-05-08)
-                - chat1
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-                - chat2
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-            - dateChat --> (2020-05-09)
-                - chat1
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-                - chat2
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-    -chatID --> (uid1_uid2)
-        - allChat
-            - dateChat --> (2020-05-08)
-                - chat1
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-                - chat2
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-            - dateChat --> (2020-05-08)
-                - chat1
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
-                - chat2
-                    - sentBy
-                    - chatDate
-                    - chatTime
-                    - chatContent
+simbol  meaning
+=>      (collection)
+*       (doc)
+-       (field)
+$       (primary key)
+(?)     (optional)
 
-- messages
-    - uid --> prawito
-        - chatID
-            - lastChat
-            - lastChatDate
-            - uidPartner
-        - chatID
-            - lastChat
-            - lastChatDate
-            - uidPartner
-    - uid --> azzamy
-        - chatID
-            - lastChat
-            - lastChatDate
-            - uidPartner
-        - chatID
-            - lastChat
-            - lastChatDate
-            - uidPartner
+(=>) data-covid-perkecamatan
+    (*) data 
+        (=>) 14-08-2021 ($)
+            (*) kecamatan_name (doc)
+                (=>) kelurahan
+                    (*) kelurahan_name
+                        (-) name (must same with kelurahan_name) 
+                        (-) total                                   
+            (-) name (must same with kecamatan_name)
+        (-) last_update
+
+(=>) data-covid
+    (*) data
+        (=>) 14-08-2021 ($)
+            (*) positif_covid
+                (=>) data 
+                    (*) data_total
+                        (-) total_dirawat
+                        (-) total_meninggal
+                        (-) total_positif
+                        (-) total_sembuh
+                    (*) penambahan_kasus_harian
+                        (-) antigen
+                        (-) pcr_tcm
+            (*) rapid_antigen
+                (-) negatif
+                (-) positif
+            (*) tcm_pcr
+                (-) negatif
+                (-) positif                
+        (-) last_update
+
+
+(=>) data-isolasi
+    (*) data
+        (=>) 14-08-2021 ($)
+            (*) isolasi_mandiri
+                (-) kasus_terkonfirmasi
+                (-) nama_tempat
+                (-) place_map
+            (*) isolasi_terpusat
+                (-) data : [
+                        (-) kasus_terkonfirmasi
+                        (-) nama_tempat
+                        (-) place_map
+                    ]
+            (*) rawat_rsud
+                (-) menunggu_hasil_pcr
+                (-) nama_tempat
+                (-) place_map
+                (-) terkonfirmasi
+        (-) last_update
+
+(=>) data-vaksin
+    (*) uid
+        (-) date
+        (-) img_url
+        (-) timestamp
+        (-) keterangan (?)
+        (-) sumber (?)
+        (-) jenis_vaksin (?)

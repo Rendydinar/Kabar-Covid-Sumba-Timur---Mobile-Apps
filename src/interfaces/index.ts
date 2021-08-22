@@ -1,12 +1,15 @@
 export interface IKelurahan {
   name: string;
   total: number;
+  isShow?: boolean;
+  isDesa?: boolean;
 }
 
 export interface IKecamatan {
   name: string;
   kelurahan: IKelurahan[];
   total?: number;
+  isShow?: boolean;
 }
 
 export interface IIsolasi {
@@ -15,16 +18,6 @@ export interface IIsolasi {
   place_map: string;
   terkonfirmasi?:number;
   menunggu_hasil_pcr?:number;
-}
-
-export interface IVaksin {
-  date: string;
-  img_url: string;
-  timestamp: number;
-  keterangan?: string;
-  sumber?: string;
-  jenis_vaksin?: string;
-  
 }
 
 export interface IFormUbahDataCovid {
@@ -57,4 +50,21 @@ export interface IFormTambahDataVaksin {
   date: string;
   image_name: string;
   timestamp?:number
+  place_map?:string;
+  kewajiban?:string[];
+  kouta?:number;
+  waktu_berakhir_timestamp?:number
+}
+
+export interface IVaksin {
+  date: string;
+  img_url: string;
+  timestamp: number;
+  keterangan?: string;
+  sumber?: string;
+  jenis_vaksin?: string;  
+  place_map?:string;
+  kewajiban?:string[];
+  kouta?:number;
+  waktu_berakhir_timestamp?:number
 }

@@ -1,18 +1,20 @@
-import {ICCircleDown, ICCircleUp} from 'assets';
 import Button from 'components/atoms/Button';
 import Gap from 'components/atoms/Gap';
 import Input from 'components/atoms/Input';
 import {getCovidDataPerkecamatan} from 'config/firebase/fetchData/getCovidDataPerkecamatan';
 import {updateCovidDataPerkecamatan} from 'config/firebase/fetchData/updateCovidDataPerkecamatan';
 import {IKecamatan, IKelurahan} from 'interfaces';
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import Collapsible from 'react-native-collapsible';
+import React, {useEffect, useRef, useState} from 'react';
+import {Alert, StyleSheet, Text, View} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import {useDispatch} from 'react-redux';
 import {fonts, formatDate} from 'utils';
+import {colors} from 'utils/colors';
 import {showError, showSuccess} from 'utils/showMessage';
-import {colors} from '../../../utils/colors';
+import {useNavigation} from '@react-navigation/native';
+import {Picker} from '@react-native-picker/picker';
+import {DAFTAR_KECAMATAN} from 'contants';
+import LoadingIndicator from 'components/atoms/LoadingIndicator';
 
 interface IProps {}
 interface IDataToClient {
@@ -22,18 +24,14 @@ interface IDataToClient {
 
 const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const pickerJenisVaksinRef: any = useRef();
   const [date, setDate] = useState(new Date());
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(true);
   const [dataToClient, setDataToClient] = useState<IDataToClient>();
-  const [staticDataToClient, setStaticDataToClient] = useState<IDataToClient>();
-
-  const handleToogle = () => {
-    if (open && staticDataToClient) {
-      setDataToClient(staticDataToClient);
-    }
-    setOpen(!open);
-  };
+  const [selectedKecamatanName, setSelectedKecamatanName] =
+    useState<string>('');
+  const [selectedKecamatan, setSelectedKecamatan] = useState<IKecamatan[]>([]);
 
   const handleSubmit = async () => {
     if (dataToClient) {
@@ -64,9 +62,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
   };
 
   const handleOnChange = (
-    kecamatanName: string,
     indexKecamatan: number,
-    kelurahanName: string,
     indexKelurahan: number,
     value: string
   ) => {
@@ -77,7 +73,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
           indexKelurahan
         ),
         {
-          name: kelurahanName,
+          ...dataToClient.kecamatan[indexKecamatan].kelurahan[indexKelurahan],
           total: Number(value),
         },
         ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
@@ -89,7 +85,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
       const kecamatanUpdated: any = [
         ...dataToClient.kecamatan.slice(0, indexKecamatan),
         {
-          name: kecamatanName,
+          ...dataToClient.kecamatan[indexKecamatan],
           kelurahan: kelurahanUpdated,
         },
         ...dataToClient.kecamatan.slice(
@@ -104,6 +100,71 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
       setDataToClient(tempDataResult);
     }
   };
+
+  const handleChangeShowKecamatan = (
+    isShow: boolean,
+    indexKecamatan: number
+  ) => {
+    if (dataToClient) {
+      const kecamatanUpdated: any = [
+        ...dataToClient.kecamatan.slice(0, indexKecamatan),
+        {
+          ...dataToClient.kecamatan[indexKecamatan],
+          isShow: !isShow,
+        },
+        ...dataToClient.kecamatan.slice(
+          indexKecamatan + 1,
+          dataToClient.kecamatan.length
+        ),
+      ];
+      const tempDataResult: any = {
+        ...dataToClient,
+        kecamatan: kecamatanUpdated,
+      };
+      setDataToClient(tempDataResult);
+    }
+  };
+
+  const handleChangeShowKelurahan = (
+    isShow: boolean,
+    indexKecamatan: number,
+    indexKelurahan: number
+  ) => {
+    if (dataToClient) {
+      const kelurahanUpdated: any = [
+        ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
+          0,
+          indexKelurahan
+        ),
+        {
+          ...dataToClient.kecamatan[indexKecamatan].kelurahan[indexKelurahan],
+          isShow: !isShow,
+        },
+        ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
+          indexKelurahan + 1,
+          dataToClient.kecamatan[indexKecamatan].kelurahan.length
+        ),
+      ];
+
+      const kecamatanUpdated: any = [
+        ...dataToClient.kecamatan.slice(0, indexKecamatan),
+        {
+          ...dataToClient.kecamatan[indexKecamatan],
+          kelurahan: kelurahanUpdated,
+        },
+        ...dataToClient.kecamatan.slice(
+          indexKecamatan + 1,
+          dataToClient.kecamatan.length
+        ),
+      ];
+      const tempDataResult: any = {
+        ...dataToClient,
+        kecamatan: kecamatanUpdated,
+      };
+      setDataToClient(tempDataResult);
+    }
+  };
+
   const getDataCovidPerkecamatan = async () => {
     setLoadingFetch(true);
     try {
@@ -113,14 +174,24 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
         date: responseGetCovidDataPerkecamatan.date,
         kecamatan: responseGetCovidDataPerkecamatan.data,
       });
-      setStaticDataToClient({
-        date: responseGetCovidDataPerkecamatan.date,
-        kecamatan: responseGetCovidDataPerkecamatan.data,
-      });
+      setSelectedKecamatan(responseGetCovidDataPerkecamatan.data);
     } catch (err) {
       showError(err.message);
     }
     setLoadingFetch(false);
+  };
+
+  const handleOnChangeJenisVaksin = (kecamatan_name: string) => {
+    if (kecamatan_name === 'all') {
+      setSelectedKecamatan(dataToClient?.kecamatan ?? []);
+    } else {
+      setSelectedKecamatanName(kecamatan_name);
+      const resultFilterKecamatan =
+        dataToClient?.kecamatan.filter(
+          (kecamatan: IKecamatan) => kecamatan.name === kecamatan_name
+        ) ?? [];
+      setSelectedKecamatan(resultFilterKecamatan);
+    }
   };
 
   useEffect(() => {
@@ -128,62 +199,123 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
       await getDataCovidPerkecamatan();
     }
     funcAsynDefault();
-  }, []);
+    // Preventing going back see more: https://reactnavigation.org/docs/preventing-going-back
+    navigation.addListener('beforeRemove', e => {
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      // Prompt the user before leaving the screen
+      Alert.alert(
+        'Peringatan',
+        'Apakah kamu yakin meninggalkan halaman ini ?',
+        [
+          {text: 'Tidak', style: 'cancel', onPress: () => {}},
+          {
+            text: 'Iya',
+            style: 'destructive',
+            // If the user confirmed, then we dispatch the action we blocked earlier
+            // This will continue the action that had triggered the removal of the screen
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+
+    return () => setLoadingFetch(false);
+  }, [navigation]);
 
   return loadingFetch ? (
-    <View></View>
+    <View>
+      <LoadingIndicator size="large" color="primary" />
+    </View>
   ) : (
     <View style={styles.root}>
-      <TouchableOpacity
-        onPress={handleToogle}
-        style={styles.btnToogle}
-        activeOpacity={1}>
-        <Text style={styles.titleBtnToogle}>Ubah Data Covid Perkecamatan</Text>
-        {open ? <ICCircleDown /> : <ICCircleUp />}
-      </TouchableOpacity>
-      <Collapsible collapsed={open} style={styles.collapseWrapper}>
-        {dataToClient && (
-          <>
-            <Text style={styles.terkahirUpdate}>
-              Terakhir Update: {dataToClient.date}
-            </Text>
-            <Text style={styles.waktuUpdate}>Waktu Update:</Text>
-            <DatePicker date={date} onDateChange={setDate} mode="date" />
-            {dataToClient.kecamatan.map(
-              (kecamatan: IKecamatan, indexKecamatan: number) => (
-                <View style={styles.containerItemForm} key={indexKecamatan}>
+      {dataToClient && selectedKecamatan && (
+        <>
+          <Text style={styles.terkahirUpdate}>
+            Terakhir Update: {dataToClient.date}
+          </Text>
+          <Text style={styles.waktuUpdate}>Waktu Update:</Text>
+          <DatePicker date={date} onDateChange={setDate} mode="date" />
+          <View style={styles.containerPickerDaftarKecamatan}>
+            <Picker
+              style={styles.pickerKecamatan}
+              ref={pickerJenisVaksinRef}
+              selectedValue={selectedKecamatanName}
+              onValueChange={(itemValue, itemIndex) =>
+                handleOnChangeJenisVaksin(itemValue)
+              }>
+              {DAFTAR_KECAMATAN.map((kecamatanName: string, index: number) => (
+                <Picker.Item
+                  label={kecamatanName}
+                  value={kecamatanName}
+                  key={index}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          {selectedKecamatan.map(
+            (kecamatan: IKecamatan, indexKecamatan: number) => (
+              <View style={styles.containerItemForm} key={indexKecamatan}>
+                <View style={styles.containerHeaderItemForm}>
                   <Text style={styles.titleContainerItemForm}>
                     {kecamatan.name}
                   </Text>
-                  {kecamatan.kelurahan.map(
-                    (kelurahan: IKelurahan, indexKelurahan: number) => (
+                  <Gap width={10} />
+                  <Button
+                    type="icon-only"
+                    icon={kecamatan.isShow ? 'unvisible-eyes' : 'visible-eyes'}
+                    onPress={() =>
+                      handleChangeShowKecamatan(
+                        kecamatan.isShow ?? false,
+                        indexKecamatan
+                      )
+                    }
+                  />
+                </View>
+                {kecamatan.kelurahan.map(
+                  (kelurahan: IKelurahan, indexKelurahan: number) => (
+                    <View
+                      style={styles.containerHeaderItemForm}
+                      key={indexKelurahan}>
                       <Input
-                        key={indexKelurahan}
                         label={kelurahan.name}
                         value={String(kelurahan.total)}
                         onChangeText={value =>
-                          handleOnChange(
-                            kecamatan.name,
-                            indexKecamatan,
-                            kelurahan.name,
-                            indexKelurahan,
-                            value
-                          )
+                          handleOnChange(indexKecamatan, indexKelurahan, value)
                         }
                         type="numeric"
+                        endIcon={
+                          <Button
+                            type="icon-only"
+                            icon={
+                              kelurahan.isShow
+                                ? 'unvisible-eyes'
+                                : 'visible-eyes'
+                            }
+                            onPress={() =>
+                              handleChangeShowKelurahan(
+                                kelurahan.isShow ?? false,
+                                indexKecamatan,
+                                indexKelurahan
+                              )
+                            }
+                          />
+                        }
                       />
-                    )
-                  )}
-                  <Gap height={10} />
-                </View>
-              )
-            )}
-          </>
-        )}
-        <Gap height={40} />
-        <Button title="Kirim" onPress={handleSubmit} />
-        <Gap height={20} />
-      </Collapsible>
+                    </View>
+                  )
+                )}
+                <Gap height={10} />
+              </View>
+            )
+          )}
+        </>
+      )}
+      <Gap height={40} />
+      <Button isShowPrompt={true} title="Kirim" onPress={handleSubmit} />
+      <Gap height={20} />
     </View>
   );
 };
@@ -194,32 +326,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.white,
-    paddingHorizontal: 10,
-  },
-  btnToogle: {
-    height: 40,
-    width: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  titleBtnToogle: {
-    color: colors.white,
-    fontFamily: fonts.primary[700],
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  collapseWrapper: {
-    borderColor: colors.primary,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    paddingHorizontal: 10,
-    paddingTop: 20,
   },
   containerItemForm: {
     borderColor: colors.secondary,
@@ -243,5 +349,20 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     marginBottom: 10,
     color: colors.red2,
+  },
+  containerHeaderItemForm: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  containerIconAction: {
+    marginRight: 20,
+  },
+  containerPickerDaftarKecamatan: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+  },
+  pickerKecamatan: {
+    fontSize: 16,
   },
 });

@@ -12,15 +12,15 @@ interface IProps {
 const Splash: React.FC<IProps> = props => {
   useEffect(() => {
     const unsubcribe = auth().onAuthStateChanged(user => {
-      // setTimeout(() => {
-      if (user) {
-        // user still login
-        props.navigation.replace('MainApp');
-      } else {
-        // user logout
-        props.navigation.replace('GetStarted');
-      }
-      // }, 3000);
+      setTimeout(() => {
+        if (user) {
+          // user still login
+          props.navigation.replace('MainApp');
+        } else {
+          // user logout
+          props.navigation.replace('GetStarted');
+        }
+      }, 3000);
     });
     return () => unsubcribe();
   }, []);

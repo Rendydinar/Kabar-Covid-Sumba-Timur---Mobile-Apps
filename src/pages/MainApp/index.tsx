@@ -1,22 +1,45 @@
 import {ICDatabase} from 'assets';
+import {IGetStarted} from 'assets/illustration';
+import LoadingIndicator from 'components/atoms/LoadingIndicator';
 import CardItemPage from 'components/molecus/CardItemPage';
-import React, {useEffect} from 'react';
-import {ImageBackground, StyleSheet, Text, View} from 'react-native';
-import {IGetStarted} from '../../assets/illustration';
-import {colors} from '../../utils/colors';
-import {fonts} from '../../utils/fonts';
+import React, {useEffect, useState} from 'react';
+import {
+  ActivityIndicator,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import {getData} from 'utils';
+import {colors} from 'utils/colors';
+import {fonts} from 'utils/fonts';
+import {showError} from 'utils/showMessage';
 
 interface IProps {
   navigation: any;
 }
 
 const MainApp: React.FC<IProps> = props => {
+  const [isUserLoginAdmin, setIsUserLoginAdmin] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const gotoPage = (pageName: string) => {
     props.navigation.navigate(pageName);
   };
 
+  const getUserLogin = async () => {
+    setIsLoading(true);
+    try {
+      const userLogin = await getData('user');
+      userLogin ? setIsUserLoginAdmin(true) : setIsUserLoginAdmin(false);
+    } catch (err) {
+      showError(err.message);
+    }
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    // run firebase in here
+    getUserLogin();
   }, []);
 
   return (
@@ -28,11 +51,20 @@ const MainApp: React.FC<IProps> = props => {
         </Text>
       </ImageBackground>
       <View style={styles.content}>
-        <CardItemPage
-          icon={<ICDatabase />}
-          title="Ubah Data"
-          onPress={() => gotoPage('Admin')}
-        />
+        {isLoading ? (
+          <LoadingIndicator size="small" color="primary" />
+        ) : isUserLoginAdmin ? (
+          <CardItemPage
+            icon={<ICDatabase />}
+            title="Manajemen Data"
+            onPress={() => gotoPage('Admin')}
+          />
+        ) : (
+          <Text>
+            Kamu Bukan Admin, Untuk Saat Ini Halaman Pengguna Bukan Admin Sedang
+            Dikerjakan
+          </Text>
+        )}
       </View>
     </View>
   );

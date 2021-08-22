@@ -1,4 +1,3 @@
-import {ICCircleDown, ICCircleUp} from 'assets';
 import Button from 'components/atoms/Button';
 import Gap from 'components/atoms/Gap';
 import Input from 'components/atoms/Input';
@@ -6,13 +5,13 @@ import {getCovidData} from 'config/firebase/fetchData/getCovidData';
 import {updateCovidData} from 'config/firebase/fetchData/updateCovidData';
 import {IFormUbahDataCovid} from 'interfaces';
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import Collapsible from 'react-native-collapsible';
+import {Alert, StyleSheet, Text, View} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import {useDispatch} from 'react-redux';
-import {fonts, formatDate} from 'utils';
+import {colors, fonts, formatDate} from 'utils';
 import {showError, showSuccess} from 'utils/showMessage';
-import {colors} from '../../../utils/colors';
+import {useNavigation} from '@react-navigation/native';
+import LoadingIndicator from 'components/atoms/LoadingIndicator';
 
 interface IProps {}
 interface IData {
@@ -37,9 +36,9 @@ interface IData {
 
 const UbahDataCovid: React.FC<IProps> = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [date, setDate] = useState(new Date());
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(true);
   const [data, setData] = useState<IData>();
   const [form, setForm] = useState<IFormUbahDataCovid>({
     harian_antigen: 0,
@@ -53,24 +52,6 @@ const UbahDataCovid: React.FC<IProps> = () => {
     tcm_prc_negatif: 0,
     tcm_prc_positif: 0,
   });
-
-  const handleToogle = () => {
-    if (open && data) {
-      setForm({
-        harian_antigen: data.harian.antigen,
-        harian_pcr_tcm: data.harian.pcr_tcm,
-        total_dirawat: data.harian.total_dirawat,
-        total_meninggal: data.harian.total_meninggal,
-        total_positif: data.harian.total_positif,
-        total_sembuh: data.harian.total_sembuh,
-        rapid_antigen_negatif: data.rapid_antigen.negatif,
-        rapid_antigen_positif: data.rapid_antigen.positif,
-        tcm_prc_negatif: data.tcm_pcr.negatif,
-        tcm_prc_positif: data.tcm_pcr.positif,
-      });
-    }
-    setOpen(!open);
-  };
 
   const handleSubmit = async () => {
     dispatch({
@@ -141,6 +122,18 @@ const UbahDataCovid: React.FC<IProps> = () => {
           positif: responseGetCovidData.data.tcm_pcr.positif,
         },
       };
+      setForm({
+        harian_antigen: tempData.harian.antigen,
+        harian_pcr_tcm: tempData.harian.pcr_tcm,
+        total_dirawat: tempData.harian.total_dirawat,
+        total_meninggal: tempData.harian.total_meninggal,
+        total_positif: tempData.harian.total_positif,
+        total_sembuh: tempData.harian.total_sembuh,
+        rapid_antigen_negatif: tempData.rapid_antigen.negatif,
+        rapid_antigen_positif: tempData.rapid_antigen.positif,
+        tcm_prc_negatif: tempData.tcm_pcr.negatif,
+        tcm_prc_positif: tempData.tcm_pcr.positif,
+      });
       setData(tempData);
     } catch (err) {
       showError(err.message);
@@ -153,105 +146,120 @@ const UbahDataCovid: React.FC<IProps> = () => {
       await getDataCovid();
     }
     funcAsynDefault();
-  }, []);
+    // Preventing going back see more: https://reactnavigation.org/docs/preventing-going-back
+    navigation.addListener('beforeRemove', e => {
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      // Prompt the user before leaving the screen
+      Alert.alert(
+        'Peringatan',
+        'Apakah kamu yakin meninggalkan halaman ini ?',
+        [
+          {text: 'Tidak', style: 'cancel', onPress: () => {}},
+          {
+            text: 'Iya',
+            style: 'destructive',
+            // If the user confirmed, then we dispatch the action we blocked earlier
+            // This will continue the action that had triggered the removal of the screen
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+    return () => setLoadingFetch(false);
+  }, [navigation]);
 
   return loadingFetch ? (
-    <View></View>
+    <View>
+      <LoadingIndicator size="large" color="primary" />
+    </View>
   ) : (
     <View style={styles.root}>
-      <TouchableOpacity
-        onPress={handleToogle}
-        style={styles.btnToogle}
-        activeOpacity={1}>
-        <Text style={styles.titleBtnToogle}>Ubah Data Covid</Text>
-        {open ? <ICCircleDown /> : <ICCircleUp />}
-      </TouchableOpacity>
-      <Collapsible collapsed={open} style={styles.collapseWrapper}>
-        <Text style={styles.terkahirUpdate}>Terakhir Update: {data?.date}</Text>
-        <Text style={styles.waktuUpdate}>Waktu Update:</Text>
-        <DatePicker date={date} onDateChange={setDate} mode="date" />
-        <View style={styles.containerItemForm}>
-          <Text style={styles.titleContainerItemForm}>
-            Sampel Dikirim/Diperiksa
-          </Text>
-          <View>
-            <Input
-              label="TCM / PCR (Positif)"
-              value={String(form.tcm_prc_positif)}
-              onChangeText={value => handleOnChange('tcm_prc_positif', value)}
-              type="numeric"
-            />
-            <Input
-              label="TCM / PCR (Negatif)"
-              value={String(form.tcm_prc_negatif)}
-              onChangeText={value => handleOnChange('tcm_prc_negatif', value)}
-              type="numeric"
-            />
-            <Input
-              label="Rapid antigen (Positif)"
-              value={String(form.rapid_antigen_positif)}
-              onChangeText={value =>
-                handleOnChange('rapid_antigen_positif', value)
-              }
-              type="numeric"
-            />
-            <Input
-              label="Rapid antigen (Negatif)"
-              value={String(form.rapid_antigen_negatif)}
-              onChangeText={value =>
-                handleOnChange('rapid_antigen_negatif', value)
-              }
-              type="numeric"
-            />
-          </View>
-          <Gap height={10} />
+      <Text style={styles.terkahirUpdate}>Terakhir Update: {data?.date}</Text>
+      <Text style={styles.waktuUpdate}>Waktu Update:</Text>
+      <DatePicker date={date} onDateChange={setDate} mode="date" />
+      <View style={styles.containerItemForm}>
+        <Text style={styles.titleContainerItemForm}>
+          Sampel Dikirim/Diperiksa
+        </Text>
+        <View>
+          <Input
+            label="TCM / PCR (Positif)"
+            value={String(form.tcm_prc_positif)}
+            onChangeText={value => handleOnChange('tcm_prc_positif', value)}
+            type="numeric"
+          />
+          <Input
+            label="TCM / PCR (Negatif)"
+            value={String(form.tcm_prc_negatif)}
+            onChangeText={value => handleOnChange('tcm_prc_negatif', value)}
+            type="numeric"
+          />
+          <Input
+            label="Rapid antigen (Positif)"
+            value={String(form.rapid_antigen_positif)}
+            onChangeText={value =>
+              handleOnChange('rapid_antigen_positif', value)
+            }
+            type="numeric"
+          />
+          <Input
+            label="Rapid antigen (Negatif)"
+            value={String(form.rapid_antigen_negatif)}
+            onChangeText={value =>
+              handleOnChange('rapid_antigen_negatif', value)
+            }
+            type="numeric"
+          />
         </View>
-        <View style={styles.containerItemForm}>
-          <Text style={styles.titleContainerItemForm}>Positif Covid</Text>
-          <View>
-            <Input
-              label="Penambahan Kasus Harian Antigen"
-              value={String(form.harian_antigen)}
-              onChangeText={value => handleOnChange('harian_antigen', value)}
-              type="numeric"
-            />
-            <Input
-              label="Penambahan Kasus Harian  TCR/PCR"
-              value={String(form.harian_pcr_tcm)}
-              onChangeText={value => handleOnChange('harian_pcr_tcm', value)}
-              type="numeric"
-            />
-            <Input
-              label="Total positif"
-              value={String(form.total_positif)}
-              onChangeText={value => handleOnChange('total_positif', value)}
-              type="numeric"
-            />
-            <Input
-              label="Total dirawat"
-              value={String(form.total_dirawat)}
-              onChangeText={value => handleOnChange('total_dirawat', value)}
-              type="numeric"
-            />
-            <Input
-              label="Total sembuh"
-              value={String(form.total_sembuh)}
-              onChangeText={value => handleOnChange('total_sembuh', value)}
-              type="numeric"
-            />
-            <Input
-              label="Total meninggal"
-              value={String(form.total_meninggal)}
-              onChangeText={value => handleOnChange('total_meninggal', value)}
-              type="numeric"
-            />
-          </View>
-          <Gap height={10} />
+        <Gap height={10} />
+      </View>
+      <View style={styles.containerItemForm}>
+        <Text style={styles.titleContainerItemForm}>Positif Covid</Text>
+        <View>
+          <Input
+            label="Penambahan Kasus Harian Antigen"
+            value={String(form.harian_antigen)}
+            onChangeText={value => handleOnChange('harian_antigen', value)}
+            type="numeric"
+          />
+          <Input
+            label="Penambahan Kasus Harian  TCR/PCR"
+            value={String(form.harian_pcr_tcm)}
+            onChangeText={value => handleOnChange('harian_pcr_tcm', value)}
+            type="numeric"
+          />
+          <Input
+            label="Total positif"
+            value={String(form.total_positif)}
+            onChangeText={value => handleOnChange('total_positif', value)}
+            type="numeric"
+          />
+          <Input
+            label="Total dirawat"
+            value={String(form.total_dirawat)}
+            onChangeText={value => handleOnChange('total_dirawat', value)}
+            type="numeric"
+          />
+          <Input
+            label="Total sembuh"
+            value={String(form.total_sembuh)}
+            onChangeText={value => handleOnChange('total_sembuh', value)}
+            type="numeric"
+          />
+          <Input
+            label="Total meninggal"
+            value={String(form.total_meninggal)}
+            onChangeText={value => handleOnChange('total_meninggal', value)}
+            type="numeric"
+          />
         </View>
-        <Gap height={40} />
-        <Button title="Kirim" onPress={handleSubmit} />
-        <Gap height={20} />
-      </Collapsible>
+        <Gap height={10} />
+      </View>
+      <Gap height={40} />
+      <Button title="Kirim" isShowPrompt={true} onPress={handleSubmit} />
+      <Gap height={20} />
     </View>
   );
 };
@@ -262,32 +270,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.white,
-    paddingHorizontal: 10,
-  },
-  btnToogle: {
-    height: 40,
-    width: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  titleBtnToogle: {
-    color: colors.white,
-    fontFamily: fonts.primary[700],
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  collapseWrapper: {
-    borderColor: colors.primary,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    paddingHorizontal: 10,
-    paddingTop: 20,
   },
   containerItemForm: {
     borderColor: colors.secondary,

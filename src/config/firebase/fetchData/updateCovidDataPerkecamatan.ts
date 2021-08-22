@@ -14,12 +14,15 @@ export const updateCovidDataPerkecamatan =  (dataUpdated: IData) => new Promise(
     });
     dataUpdated.data.map( async (kecamatan: IKecamatan) => {
       await DATA_COVID_PER_KECATAMATAN_COLLECTION.doc('data').collection(dataUpdated.date).doc(kecamatan.name.toLocaleLowerCase()).set({
-        name: kecamatan.name,        
+        name: kecamatan.name, 
+        isShow: kecamatan.isShow,       
       });
       kecamatan.kelurahan.map(async(kelurahan: IKelurahan) => {
         await DATA_COVID_PER_KECATAMATAN_COLLECTION.doc('data').collection(dataUpdated.date).doc(kecamatan.name.toLocaleLowerCase()).collection('kelurahan').doc(kelurahan.name.toLocaleLowerCase()).set({
           name: kelurahan.name,
-          total: kelurahan.total
+          total: kelurahan.total,
+          isShow: kelurahan.isShow,
+          isDesa: kelurahan.isDesa,
         })
       })
     })

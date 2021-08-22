@@ -8,7 +8,9 @@ const processKelurahan = async (kecamatan: any, lastUpdatedData:string):Promise<
   RESPONSE_GET_DATA_KELURAHAN.forEach((kelurahan) => {
     dataKelurahan.push({
       name: kelurahan.data().name,
-      total: kelurahan.data().total
+      total: kelurahan.data().total,
+      isShow: kelurahan.data().isShow??false,
+      isDesa: kelurahan.data().isDesa??false,      
     });
   });
 
@@ -21,7 +23,8 @@ const processDataKecamatan = (data:any, lastUpdatedData:string) => new Promise(a
     const kelurahan  = await processKelurahan(data.docs[index],lastUpdatedData)     
     dataKecamatan.push({
       name:  data.docs[index].data().name,
-      kelurahan: kelurahan
+      kelurahan: kelurahan,
+      isShow: data.docs[index].data().isShow??false
     });
   }
   resolve(dataKecamatan)
