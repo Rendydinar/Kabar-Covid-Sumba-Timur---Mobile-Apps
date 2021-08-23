@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useDispatch} from 'react-redux';
 import {ICLogoGreen} from '../../assets/icon';
@@ -19,10 +19,15 @@ interface IProps {
 
 const Login: React.FC<IProps> = props => {
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [form, setForm] = useForm({
     email: '',
     password: '',
   });
+
+  const handleToggleShowPassword = (): void => {
+    setShowPassword(!showPassword);
+  };
 
   const handleLogin = () => {
     dispatch({
@@ -51,7 +56,9 @@ const Login: React.FC<IProps> = props => {
   return (
     <>
       <View style={styles.rootLoginPage}>
-        <ScrollView showsHorizontalScrollIndicator={false}>
+        <ScrollView
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}>
           <Gap height={40} />
           <ICLogoGreen />
           <Text style={styles.title}>Login sebagai admin</Text>
@@ -65,7 +72,14 @@ const Login: React.FC<IProps> = props => {
             label="Kata sandi"
             value={form.password}
             onChangeText={value => setForm('password', value)}
-            secureTextEntry
+            secureTextEntry={showPassword ? false : true}
+            endIcon={
+              <Button
+                type="icon-only"
+                icon={showPassword ? 'unvisible-eyes' : 'visible-eyes'}
+                onPress={handleToggleShowPassword}
+              />
+            }
           />
           <Gap height={10} />
           <Gap height={24} />

@@ -15,7 +15,7 @@ import {useNavigation} from '@react-navigation/native';
 import {Picker} from '@react-native-picker/picker';
 import {DAFTAR_KECAMATAN} from 'contants';
 import LoadingIndicator from 'components/atoms/LoadingIndicator';
-
+import findIndex from 'lodash/findIndex';
 interface IProps {}
 interface IDataToClient {
   date: string;
@@ -30,7 +30,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false);
   const [dataToClient, setDataToClient] = useState<IDataToClient>();
   const [selectedKecamatanName, setSelectedKecamatanName] =
-    useState<string>('');
+    useState<string>('all');
   const [selectedKecamatan, setSelectedKecamatan] = useState<IKecamatan[]>([]);
 
   const handleSubmit = async () => {
@@ -61,107 +61,159 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
     }
   };
 
-  const handleOnChange = (
-    indexKecamatan: number,
-    indexKelurahan: number,
+  const updatedSelectedKecamatan = (
+    dataUpdatedKecamatan: IKecamatan[]
+  ): void => {
+    if (selectedKecamatanName === 'all') {
+      setSelectedKecamatan(dataUpdatedKecamatan);
+    } else {
+      const resultFilterKecamatan = dataUpdatedKecamatan.filter(
+        (kecamatan: IKecamatan) => kecamatan.name === selectedKecamatanName
+      );
+      setSelectedKecamatan(resultFilterKecamatan);
+    }
+  };
+
+  const handleOnChangeKelurahanTotal = (
+    kecamatanName: string,
+    kelurahanName: string,
     value: string
   ) => {
     if (dataToClient) {
-      const kelurahanUpdated: any = [
-        ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
-          0,
-          indexKelurahan
-        ),
-        {
-          ...dataToClient.kecamatan[indexKecamatan].kelurahan[indexKelurahan],
-          total: Number(value),
-        },
-        ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
-          indexKelurahan + 1,
-          dataToClient.kecamatan[indexKecamatan].kelurahan.length
-        ),
-      ];
+      const indexKecamatan = findIndex(dataToClient.kecamatan, [
+        'name',
+        kecamatanName,
+      ]);
+      if (indexKecamatan !== -1) {
+        const selectedKecamatan = dataToClient.kecamatan[indexKecamatan];
+        const indexKelurahan = findIndex(selectedKecamatan.kelurahan, [
+          'name',
+          kelurahanName,
+        ]);
+        if (indexKelurahan !== -1) {
+          const kelurahanUpdated: any = [
+            ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
+              0,
+              indexKelurahan
+            ),
+            {
+              ...dataToClient.kecamatan[indexKecamatan].kelurahan[
+                indexKelurahan
+              ],
+              total: Number(value),
+            },
+            ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
+              indexKelurahan + 1,
+              dataToClient.kecamatan[indexKecamatan].kelurahan.length
+            ),
+          ];
 
-      const kecamatanUpdated: any = [
-        ...dataToClient.kecamatan.slice(0, indexKecamatan),
-        {
-          ...dataToClient.kecamatan[indexKecamatan],
-          kelurahan: kelurahanUpdated,
-        },
-        ...dataToClient.kecamatan.slice(
-          indexKecamatan + 1,
-          dataToClient.kecamatan.length
-        ),
-      ];
-      const tempDataResult: any = {
-        ...dataToClient,
-        kecamatan: kecamatanUpdated,
-      };
-      setDataToClient(tempDataResult);
+          const kecamatanUpdated: any = [
+            ...dataToClient.kecamatan.slice(0, indexKecamatan),
+            {
+              ...dataToClient.kecamatan[indexKecamatan],
+              kelurahan: kelurahanUpdated,
+            },
+            ...dataToClient.kecamatan.slice(
+              indexKecamatan + 1,
+              dataToClient.kecamatan.length
+            ),
+          ];
+          const tempDataResult: any = {
+            ...dataToClient,
+            kecamatan: kecamatanUpdated,
+          };
+          setDataToClient(tempDataResult);
+          updatedSelectedKecamatan(tempDataResult.kecamatan);
+        }
+      }
     }
   };
 
   const handleChangeShowKecamatan = (
     isShow: boolean,
-    indexKecamatan: number
+    kecamatan_name: string
   ) => {
     if (dataToClient) {
-      const kecamatanUpdated: any = [
-        ...dataToClient.kecamatan.slice(0, indexKecamatan),
-        {
-          ...dataToClient.kecamatan[indexKecamatan],
-          isShow: !isShow,
-        },
-        ...dataToClient.kecamatan.slice(
-          indexKecamatan + 1,
-          dataToClient.kecamatan.length
-        ),
-      ];
-      const tempDataResult: any = {
-        ...dataToClient,
-        kecamatan: kecamatanUpdated,
-      };
-      setDataToClient(tempDataResult);
+      const indexKecamatan = findIndex(dataToClient.kecamatan, [
+        'name',
+        kecamatan_name,
+      ]);
+      if (indexKecamatan !== -1) {
+        const kecamatanUpdated: any = [
+          ...dataToClient.kecamatan.slice(0, indexKecamatan),
+          {
+            ...dataToClient.kecamatan[indexKecamatan],
+            isShow: !isShow,
+          },
+          ...dataToClient.kecamatan.slice(
+            indexKecamatan + 1,
+            dataToClient.kecamatan.length
+          ),
+        ];
+        const tempDataResult: any = {
+          ...dataToClient,
+          kecamatan: kecamatanUpdated,
+        };
+        setDataToClient(tempDataResult);
+        updatedSelectedKecamatan(tempDataResult.kecamatan);
+      }
     }
   };
 
   const handleChangeShowKelurahan = (
     isShow: boolean,
-    indexKecamatan: number,
-    indexKelurahan: number
+    kecamatanName: string,
+    kelurahanName: string
   ) => {
     if (dataToClient) {
-      const kelurahanUpdated: any = [
-        ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
-          0,
-          indexKelurahan
-        ),
-        {
-          ...dataToClient.kecamatan[indexKecamatan].kelurahan[indexKelurahan],
-          isShow: !isShow,
-        },
-        ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
-          indexKelurahan + 1,
-          dataToClient.kecamatan[indexKecamatan].kelurahan.length
-        ),
-      ];
+      const indexKecamatan = findIndex(dataToClient.kecamatan, [
+        'name',
+        kecamatanName,
+      ]);
+      if (indexKecamatan !== -1) {
+        const selectedKecamatan = dataToClient.kecamatan[indexKecamatan];
+        const indexKelurahan = findIndex(selectedKecamatan.kelurahan, [
+          'name',
+          kelurahanName,
+        ]);
+        if (indexKelurahan !== -1) {
+          const kelurahanUpdated: any = [
+            ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
+              0,
+              indexKelurahan
+            ),
+            {
+              ...dataToClient.kecamatan[indexKecamatan].kelurahan[
+                indexKelurahan
+              ],
+              isShow: !isShow,
+            },
+            ...dataToClient.kecamatan[indexKecamatan].kelurahan.slice(
+              indexKelurahan + 1,
+              dataToClient.kecamatan[indexKecamatan].kelurahan.length
+            ),
+          ];
 
-      const kecamatanUpdated: any = [
-        ...dataToClient.kecamatan.slice(0, indexKecamatan),
-        {
-          ...dataToClient.kecamatan[indexKecamatan],
-          kelurahan: kelurahanUpdated,
-        },
-        ...dataToClient.kecamatan.slice(
-          indexKecamatan + 1,
-          dataToClient.kecamatan.length
-        ),
-      ];
-      const tempDataResult: any = {
-        ...dataToClient,
-        kecamatan: kecamatanUpdated,
-      };
-      setDataToClient(tempDataResult);
+          const kecamatanUpdated: any = [
+            ...dataToClient.kecamatan.slice(0, indexKecamatan),
+            {
+              ...dataToClient.kecamatan[indexKecamatan],
+              kelurahan: kelurahanUpdated,
+            },
+            ...dataToClient.kecamatan.slice(
+              indexKecamatan + 1,
+              dataToClient.kecamatan.length
+            ),
+          ];
+          const tempDataResult: any = {
+            ...dataToClient,
+            kecamatan: kecamatanUpdated,
+          };
+          setDataToClient(tempDataResult);
+          updatedSelectedKecamatan(tempDataResult.kecamatan);
+        }
+      }
     }
   };
 
@@ -181,7 +233,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
     setLoadingFetch(false);
   };
 
-  const handleOnChangeJenisVaksin = (kecamatan_name: string) => {
+  const handleOnChangeKecamatan = (kecamatan_name: string) => {
     if (kecamatan_name === 'all') {
       setSelectedKecamatan(dataToClient?.kecamatan ?? []);
     } else {
@@ -243,7 +295,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
               ref={pickerJenisVaksinRef}
               selectedValue={selectedKecamatanName}
               onValueChange={(itemValue, itemIndex) =>
-                handleOnChangeJenisVaksin(itemValue)
+                handleOnChangeKecamatan(itemValue)
               }>
               {DAFTAR_KECAMATAN.map((kecamatanName: string, index: number) => (
                 <Picker.Item
@@ -269,7 +321,7 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
                     onPress={() =>
                       handleChangeShowKecamatan(
                         kecamatan.isShow ?? false,
-                        indexKecamatan
+                        kecamatan.name
                       )
                     }
                   />
@@ -283,7 +335,11 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
                         label={kelurahan.name}
                         value={String(kelurahan.total)}
                         onChangeText={value =>
-                          handleOnChange(indexKecamatan, indexKelurahan, value)
+                          handleOnChangeKelurahanTotal(
+                            kecamatan.name,
+                            kelurahan.name,
+                            value
+                          )
                         }
                         type="numeric"
                         endIcon={
@@ -297,8 +353,8 @@ const UbahDataCovidPerkecamatan: React.FC<IProps> = () => {
                             onPress={() =>
                               handleChangeShowKelurahan(
                                 kelurahan.isShow ?? false,
-                                indexKecamatan,
-                                indexKelurahan
+                                kecamatan.name,
+                                kelurahan.name
                               )
                             }
                           />
