@@ -13,6 +13,7 @@ import MainApp from 'pages/MainApp';
 import ManajemenDataCovid from 'pages/ManajemenDataCovid';
 import Splash from 'pages/Splash';
 import {colors, fonts} from 'utils';
+import DaftarDataVaksin from 'pages/DaftarDataVaksin';
 
 const Stack = createStackNavigator();
 // const Tab = createBottomTabNavigator();
@@ -133,6 +134,22 @@ const Router = () => {
         options={{
           headerShown: true,
           title: 'Manajemen Data Vaksin',
+          headerStyle: {
+            backgroundColor: colors.primary,
+          },
+          headerTintColor: colors.white,
+          headerTitleStyle: {
+            fontFamily: fonts.primary[700],
+            fontSize: 16,
+          },
+        }}
+      />
+      <Stack.Screen
+        name="DaftarDataVaksin"
+        component={DaftarDataVaksin}
+        options={{
+          headerShown: true,
+          title: 'Daftar Data Vaksin',
           headerStyle: {
             backgroundColor: colors.primary,
           },

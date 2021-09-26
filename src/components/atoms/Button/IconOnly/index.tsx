@@ -22,6 +22,10 @@ const IconOnly: React.FC<IProps> = props => {
       return <ICVisibleEyes />;
     } else if (props.icon === 'unvisible-eyes') {
       return <ICUnVisibleEyes />;
+    } else if (props.icon === 'add-icon') {
+      return <ICVisibleEyes />;
+    } else if (props.icon === 'remove-icon') {
+      return <ICUnVisibleEyes />;
     } else {
       return <ICBackDark />;
     }

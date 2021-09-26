@@ -1,7 +1,7 @@
 import {ICDatabase} from 'assets';
 import {IGetStarted} from 'assets/illustration';
 import LoadingIndicator from 'components/atoms/LoadingIndicator';
-import CardItemPage from 'components/molecus/CardItemPage';
+import CardItemPage from 'components/molecules/CardItemPage';
 import React, {useEffect, useState} from 'react';
 import {
   ActivityIndicator,

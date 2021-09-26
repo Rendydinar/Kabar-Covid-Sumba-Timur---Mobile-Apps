@@ -51,7 +51,7 @@ export interface IFormTambahDataVaksin {
   image_name: string;
   timestamp?:number
   place_map?:string;
-  kewajiban?:string[];
+  kewajiban:string[];
   kouta?:number;
   waktu_berakhir_timestamp?:number
 }
@@ -67,4 +67,10 @@ export interface IVaksin {
   kewajiban?:string[];
   kouta?:number;
   waktu_berakhir_timestamp?:number
+}
+
+export interface IJadwalVaksinMessage {
+  vaksin_id: string;
+  created_at: string;
+  sent_at: string | null;
 }

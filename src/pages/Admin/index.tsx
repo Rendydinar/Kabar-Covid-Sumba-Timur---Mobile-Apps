@@ -1,5 +1,5 @@
 import {ICDatabase} from 'assets';
-import CardItemPage from 'components/molecus/CardItemPage';
+import CardItemPage from 'components/molecules/CardItemPage';
 import React from 'react';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';

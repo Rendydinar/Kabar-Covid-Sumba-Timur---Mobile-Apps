@@ -3,7 +3,7 @@ import React from 'react';
 import {LogBox} from 'react-native';
 import FlashMessage from 'react-native-flash-message';
 import {Provider, useSelector} from 'react-redux';
-import Loading from './components/molecus/Loading';
+import Loading from './components/molecules/Loading';
 import store from './redux/store';
 import Router from './router';
 

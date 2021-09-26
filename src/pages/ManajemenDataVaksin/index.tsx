@@ -1,6 +1,7 @@
-import UbahDataVaksin from 'components/organims/UbahDataVaksin';
+import Button from 'components/atoms/Button';
+import TambahDataVaksin from 'components/organims/TambahDataVaksin';
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {colors} from 'utils/colors';
 import {fonts} from 'utils/fonts';
@@ -10,13 +11,26 @@ interface IProps {
 }
 
 const ManajemenDataVaksin: React.FC<IProps> = props => {
+  const gotoPage = (pageName: string) => {
+    props.navigation.navigate(pageName);
+  };
+
   return (
     <ScrollView
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}>
       <View style={styles.root}>
+        {/* <TouchableOpacity
+          style={styles.root}
+          onPress={() => gotoPage('DaftarDataVaksin')}>
+          <Text>Lihat Data Vaksin</Text>
+        </TouchableOpacity> */}
+        <Button
+          title="Lihat Data Vaksin"
+          onPress={() => gotoPage('DaftarDataVaksin')}
+        />
         <View style={styles.content}>
-          <UbahDataVaksin />
+          <TambahDataVaksin />
         </View>
       </View>
     </ScrollView>

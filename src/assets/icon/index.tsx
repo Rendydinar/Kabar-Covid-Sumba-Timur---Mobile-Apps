@@ -24,6 +24,7 @@ import ICCircleUp from './circle_up.svg';
 import ICAddLarge from './ic-add-large.svg';
 import ICVisibleEyes from './ic-visible-eyes.svg';
 import ICUnVisibleEyes from './ic-unvisible-eyes.svg';
+import ICCloseOutline from './ic-close-outline.svg';
 
 export {
   ICLogo,
@@ -52,4 +53,5 @@ export {
   ICAddLarge,
   ICVisibleEyes,
   ICUnVisibleEyes,
+  ICCloseOutline,
 };
