@@ -23,56 +23,40 @@ cd Kabar-Covid-Sumba-Timur---Mobile-Apps
 npm install
 ```
 
-Pastikan sudah terinstall alat pendukung untuk menjalankan React Native [Setting up the development environment · React Native](https://reactnative.dev/docs/environment-setup)
+Pastikan perangkat anda sudah terinstall alat pendukung untuk menjalankan React Native [Setting up the development environment · React Native](https://reactnative.dev/docs/environment-setup)
 
-Penyiapan Firebase untuk database **(see file /Kabar Covid Sumba Timur/firebase/Database Schema.txt)** untuk instruksi
+Penyiapan Firebase untuk database **(see file /Kabar-Covid-Sumba-Timur---Mobile-Apps/src/config/firebase/Database Schema.txt)** untuk instruksi
 
-Copy variabel local pada file .env.local **(Important to use firebase)**
+Penyiapan konfigurasi Firebase **(Important to use firebase)** Bisa lihat pada referensi berikut [Android Setup Firebase React Native](https://rnfirebase.io/#2-android-setup)
 
-```bash
-# TODO. Fill in with Firebase Config
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_DATABASE_URL=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
+Setelah melakukan konfigurasi firebase, akan ada file `google-services.json`
 
-# for firebase-admin
-FIREBASE_CLIENT_EMAIL=
-FIREBASE_PRIVATE_KEY=s
-```
-
-Terakhir, jalankan server pengembangan.
+Terakhir, jalankan aplikasi pengembangan.
 
 ```bash
-npm run dev
+npx react-native start
 ```
 
-Buka [http://localhost:3000](http://localhost:3000) dengan browser Anda untuk melihat hasilnya.
+```bash
+npx react-native run-android
+```
+
+Jika semuanya sudah diatur dengan benar, Anda akan segera melihat aplikasi baru Anda berjalan di emulator Android Anda.
 
 ### Belajarlah lagi
 
-Untuk mempelajari lebih lanjut tentang Next.js, lihat referensi berikut:
+Untuk mempelajari lebih lanjut tentang React Native, lihat referensi berikut:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [React Native Gettting Started](https://reactnative.dev/docs/getting-started) - Introduction · React Native
 
 Untuk mempelajari lebih lanjut tentang Firebase, lihat referensi berikut:
 
 - [Firebase Documentation](https://firebase.google.com/docs) - Firebase Documentation
 
-Untuk mempelajari lebih lanjut tentang Reactjs, lihat referensi berikut:
-
-- [Getting Started – React](https://reactjs.org/docs/getting-started.html) - Getting Started – React
-
 ### Alat yang Sering Digunakan
 
-- [Material-UI](https://mui.com/)
 - [Figma](https://www.figma.com/)
-- [Measure Web Performance](https://web.dev/measure)
 
 ### Lisensi
 
-Kabar Covid SumbaTimur berada di bawah [MIT License](LICENSE.md)
+Kabar Covid Sumba Timur - Mobile Apps [MIT License](LICENSE.md)
