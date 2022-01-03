@@ -16,8 +16,8 @@ export interface IIsolasi {
   nama_tempat: string;
   kasus_terkonfirmasi: number;
   place_map: string;
-  terkonfirmasi?:number;
-  menunggu_hasil_pcr?:number;
+  terkonfirmasi?: number;
+  menunggu_hasil_pcr?: number;
 }
 
 export interface IFormUbahDataCovid {
@@ -44,16 +44,17 @@ export interface IUbahDataIsolasi {
 
 export interface IFormTambahDataVaksin {
   keterangan: string;
-  sumber:string;
+  sumber: string;
   img_uri: string;
   jenis_vaksin: string;
   date: string;
   image_name: string;
-  timestamp?:number
-  place_map?:string;
-  kewajiban:string[];
-  kouta?:number;
-  waktu_berakhir_timestamp?:number
+  timestamp?: number;
+  place_map?: string;
+  kewajiban: string[];
+  kouta?: number;
+  waktu_berakhir_timestamp?: number;
+  is_verified: boolean;
 }
 
 export interface IVaksin {
@@ -62,11 +63,12 @@ export interface IVaksin {
   timestamp: number;
   keterangan?: string;
   sumber?: string;
-  jenis_vaksin?: string;  
-  place_map?:string;
-  kewajiban?:string[];
-  kouta?:number;
-  waktu_berakhir_timestamp?:number
+  jenis_vaksin?: string;
+  place_map?: string;
+  kewajiban?: string[];
+  kouta?: number;
+  waktu_berakhir_timestamp?: number;
+  is_verified: boolean;
 }
 
 export interface IJadwalVaksinMessage {

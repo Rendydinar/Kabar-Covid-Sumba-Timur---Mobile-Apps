@@ -5,10 +5,8 @@ import Button from 'components/atoms/Button';
 import Gap from 'components/atoms/Gap';
 import Input from 'components/atoms/Input';
 import {addDataVaksin} from 'config/firebase/fetchData/addDataVaksin';
-import {getDataVaksin} from 'config/firebase/fetchData/getDataVaksin';
 import {DAFTAR_VAKSIN_COVID} from 'contants';
-import {IFormTambahDataVaksin, IVaksin} from 'interfaces';
-import sortBy from 'lodash/sortBy';
+import {IFormTambahDataVaksin} from 'interfaces';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Alert,
@@ -36,6 +34,7 @@ const TambahDataVaksin: React.FC<IProps> = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const pickerJenisVaksinRef: any = useRef();
+  const pickerVerfikasiVaksinRef: any = useRef();
   const [hasPhoto, setHasPhoto] = useState(false);
   const [photo, setPhoto] = useState(ILVaksinNull);
   const [dateMulaiVaksin, setDateMulaiVaksin] = useState(new Date());
@@ -55,6 +54,7 @@ const TambahDataVaksin: React.FC<IProps> = () => {
     kewajiban: [],
     kouta: 0,
     waktu_berakhir_timestamp: 0,
+    is_verified: false,
   });
 
   const getImageFromGallery = () => {
@@ -129,6 +129,13 @@ const TambahDataVaksin: React.FC<IProps> = () => {
     setForm({
       ...form,
       jenis_vaksin: vaksin,
+    });
+  };
+
+  const handleOnChangeVerifikasiVaksin = (statusVerifikasi: boolean) => {
+    setForm({
+      ...form,
+      is_verified: statusVerifikasi,
     });
   };
 
@@ -262,6 +269,19 @@ const TambahDataVaksin: React.FC<IProps> = () => {
             value={String(form.keterangan)}
             onChangeText={value => handleOnChange('keterangan', value)}
           />
+          <Text style={styles.waktuVaksin}>Apakah terverifikasi</Text>
+          <View style={styles.containerPickerJenisVaksin}>
+            <Picker
+              style={styles.pickerJenisVaksin}
+              ref={pickerVerfikasiVaksinRef}
+              selectedValue={form.is_verified}
+              onValueChange={(itemValue, itemIndex) =>
+                handleOnChangeVerifikasiVaksin(itemValue)
+              }>
+              <Picker.Item label={'Sudah'} value={true} />
+              <Picker.Item label={'Belum'} value={false} />
+            </Picker>
+          </View>
           <Text
             style={{
               marginBottom: 10,
